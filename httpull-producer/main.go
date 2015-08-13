@@ -1,6 +1,7 @@
 package main
 
 import "net/http"
+import "flag"
 import "encoding/json"
 import "github.com/hugopeixoto/httpull"
 
@@ -29,16 +30,23 @@ func (h *QueueHandler) FinishJob(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	var (
+		frontend = flag.String("frontend-address", ":8080", "frontend address")
+		backend  = flag.String("backend-address", ":9090", "backend address")
+	)
+
+	flag.Parse()
+
 	queue := QueueHandler{httpull.NewQueue()}
 
 	go func() {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/", queue.HandleJob)
-		http.ListenAndServe(":8080", mux)
+		http.ListenAndServe(*frontend, mux)
 	}()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/jobs/ask", queue.AskJob)
 	mux.HandleFunc("/jobs/finish", queue.FinishJob)
-	http.ListenAndServe(":9090", mux)
+	http.ListenAndServe(*backend, mux)
 }

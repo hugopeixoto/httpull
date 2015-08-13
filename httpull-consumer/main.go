@@ -95,6 +95,8 @@ func main() {
 		command    = flag.String("worker-cmd", "", "worker command")
 	)
 
+	flag.Parse()
+
 	for i := 0; i < *workers; i++ {
 		go func() {
 			time.Sleep(3 * time.Second)
