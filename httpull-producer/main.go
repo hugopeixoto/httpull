@@ -2,7 +2,7 @@ package main
 
 import "net/http"
 import "encoding/json"
-import "hugopeixoto.net/httpull"
+import "github.com/hugopeixoto/httpull"
 
 type QueueHandler struct {
 	Queue *httpull.Queue
@@ -12,7 +12,6 @@ func (h *QueueHandler) HandleJob(w http.ResponseWriter, r *http.Request) {
 	req := httpull.SerializeRequest(r)
 
 	response := h.Queue.HandleJob(req)
-
 	httpull.DeserializeResponse(response, w)
 }
 

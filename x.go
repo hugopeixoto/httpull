@@ -40,6 +40,18 @@ func SerializeRequest(r *http.Request) JobRequest {
 	}
 }
 
+func SerializeResponse(req JobRequest, r *http.Response) JobResponse {
+  defer r.Body.Close()
+  body, _ := ioutil.ReadAll(r.Body)
+
+  return JobResponse{
+    req.JobIdentifier,
+    r.StatusCode,
+    r.Header,
+    body,
+  }
+}
+
 func DeserializeResponse(response JobResponse, w http.ResponseWriter) {
 	w.WriteHeader(response.StatusCode)
 

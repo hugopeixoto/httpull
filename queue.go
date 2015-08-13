@@ -1,6 +1,8 @@
 package httpull
 
 import "fmt"
+import "time"
+import "net/http"
 
 type Job struct {
 	ResponseChan chan JobResponse
@@ -17,9 +19,9 @@ type Queue struct {
 
 func NewQueue() *Queue {
   q := Queue{
-    make(chan Job),
-    make(chan JobRequest),
-    make(chan JobResponse),
+    make(chan Job, 100),
+    make(chan JobRequest, 100),
+    make(chan JobResponse, 100),
     make(map[string]chan JobResponse),
   }
 
@@ -33,12 +35,23 @@ func (q *Queue) Loop() {
     select {
     case job := <-q.in:
       q.jobs[job.Request.JobIdentifier] = job.ResponseChan
-      go func() { q.in2 <- job.Request }()
+      go func() { fmt.Println("request ready to be served"); q.in2 <- job.Request }()
+      go func(job JobRequest) {
+        time.Sleep(30 * time.Second)
+        q.FinishJob(JobResponse{
+          job.JobIdentifier,
+          http.StatusGatewayTimeout,
+          map[string][]string{},
+          []byte(``),
+        })
+      }(job.Request)
 
     case response := <-q.out:
-      ch := q.jobs[response.JobIdentifier]
-      delete(q.jobs, response.JobIdentifier)
-      go func() { ch <- response }()
+      ch, ok := q.jobs[response.JobIdentifier]
+      if ok {
+        delete(q.jobs, response.JobIdentifier)
+        go func() { ch <- response }()
+      }
     }
 
     fmt.Printf("{\"pending_jobs\": %v}\n", len(q.jobs))
@@ -54,6 +67,7 @@ func (q *Queue) HandleJob(req JobRequest) JobResponse {
 }
 
 func (q *Queue) AskJob() JobRequest {
+  fmt.Println("worker waiting for job")
 	return <-q.in2
 }
 
