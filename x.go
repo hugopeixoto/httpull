@@ -22,9 +22,9 @@ type JobResponse struct {
 }
 
 func generate_job_id() string {
-  buf := make([]byte, 16)
-  rand.Read(buf)
-  return base64.StdEncoding.EncodeToString(buf)
+	buf := make([]byte, 16)
+	rand.Read(buf)
+	return base64.StdEncoding.EncodeToString(buf)
 }
 
 func SerializeRequest(r *http.Request) JobRequest {
@@ -41,15 +41,15 @@ func SerializeRequest(r *http.Request) JobRequest {
 }
 
 func SerializeResponse(req JobRequest, r *http.Response) JobResponse {
-  defer r.Body.Close()
-  body, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	body, _ := ioutil.ReadAll(r.Body)
 
-  return JobResponse{
-    req.JobIdentifier,
-    r.StatusCode,
-    r.Header,
-    body,
-  }
+	return JobResponse{
+		req.JobIdentifier,
+		r.StatusCode,
+		r.Header,
+		body,
+	}
 }
 
 func DeserializeResponse(response JobResponse, w http.ResponseWriter) {
